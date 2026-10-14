@@ -17,4 +17,4 @@ Os dados das vendas ficam no Supabase, e não neste repositório. Por isso, atua
 
 Hospedado no Cloudflare. Quando o Cloudflare está ligado a este repositório, cada commit na branch `main` publica o site automaticamente.
 
-Configuração usada pelo Cloudflare: `wrangler.jsonc`, que publica a pasta `public/` no Worker `rifadoscrias`.
+Configuração usada pelo Cloudflare: `wrangler.jsonc`, que publica a pasta `public/` no Worker `rifa`.
