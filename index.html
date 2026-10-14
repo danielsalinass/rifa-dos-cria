@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rifa dos Cria</title>
+<meta name="description" content="Rifa Formatura dos Cria — R$5 o número. Prêmio: R$500 no Pix ou 1 leitão gordo.">
+<meta property="og:title" content="Rifa Formatura dos Cria">
+<meta property="og:description" content="R$5 o número · Prêmio: R$500 no Pix ou 1 leitão gordo. Veja os números livres!">
+<meta property="og:image" content="crias.jpg">
+<meta name="theme-color" content="#2364b6">
+<link rel="icon" href="leitao.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Rubik:wght@400;500;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+<style>
+:root {
+  --sky: #2364b6; --sky-deep: #17489a; --yolk: #ffd400; --flame: #e5260a;
+  --leaf: #2e9e1c; --leaf-deep: #155c0c; --navy: #1b1a9e; --ink: #0f1b3d; --paper: #ffffff;
+  --display: "Bagel Fat One", "Cooper Black", "Arial Black", system-ui, sans-serif;
+  --body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { background: var(--sky); }
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse 60% 18% at 15% 8%, rgba(255,255,255,.18), transparent 70%),
+    radial-gradient(ellipse 50% 14% at 85% 30%, rgba(255,255,255,.14), transparent 70%),
+    radial-gradient(ellipse 70% 16% at 30% 62%, rgba(255,255,255,.12), transparent 70%),
+    var(--sky);
+  color: var(--paper); font-family: var(--body); font-size: 15px; min-height: 100vh;
+}
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.wrap {
+  max-width: 980px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 26px;
+}
+.topo { display: flex; justify-content: flex-end; gap: 8px; align-items: center; font-size: 13px; font-weight: 500; flex-wrap: wrap; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1fr auto; gap: 8px 20px; align-items: end; }
+.hero-title { min-width: 0; }
+.kicker { font-family: var(--display); color: var(--flame); font-size: clamp(28px, 6vw, 44px); line-height: 1; margin: 0 0 4px 6px; }
+h1 { margin: 0; font-family: var(--display); font-weight: 400; line-height: .92; }
+.l1, .l2 { display: block; color: var(--yolk); font-size: clamp(46px, 12vw, 104px); paint-order: stroke fill; }
+.l1 { -webkit-text-stroke: 12px var(--flame); filter: drop-shadow(0 3px 0 var(--flame)); }
+.l2 { -webkit-text-stroke: 12px var(--navy); filter: drop-shadow(0 3px 0 var(--navy)); }
+.donos { font-family: var(--display); color: var(--flame); font-size: clamp(18px, 4vw, 26px); line-height: 1; transform: rotate(-38deg); text-align: center; margin-bottom: 40px; }
+.premio { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; }
+.premio .lbl { font-family: var(--display); color: var(--yolk); font-size: 26px; -webkit-text-stroke: 6px var(--navy); paint-order: stroke fill; }
+.premio .grana { font-family: var(--display); color: #43c42c; font-size: clamp(40px, 9vw, 64px); -webkit-text-stroke: 9px var(--leaf-deep); paint-order: stroke fill; line-height: 1; }
+.premio .ou { font-family: var(--display); color: var(--flame); font-size: 22px; }
+.premio .leitao { display: flex; align-items: center; gap: 8px; }
+.premio .leitao img { width: 120px; height: auto; display: block; }
+.premio .leitao span { font-family: var(--display); color: var(--flame); font-size: 20px; line-height: 1; transform: rotate(6deg); }
+.premio small { font-family: var(--display); color: var(--flame); font-size: 18px; display: block; margin-top: 2px; }
+.preco { font-family: var(--display); color: var(--yolk); font-size: 30px; -webkit-text-stroke: 8px var(--flame); paint-order: stroke fill; }
+
+/* Placar */
+.placar { background: var(--paper); color: var(--ink); border-radius: 22px; box-shadow: 0 6px 0 var(--sky-deep); padding: 18px; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+.placar.publico { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat .k { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #50607f; }
+.stat .v { font-family: var(--display); font-size: 30px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.verde { color: var(--leaf); } .amarelo { color: #c48e00; } .azul { color: var(--sky); }
+.barra { grid-column: 1 / -1; height: 14px; border-radius: 99px; background: #e6ecf7; overflow: hidden; display: flex; }
+.barra i { display: block; height: 100%; }
+.barra .p { background: var(--leaf); } .barra .r { background: var(--yolk); }
+.vendedores { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: #33415f; }
+.vendedores b { font-variant-numeric: tabular-nums; }
+
+/* Toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 700 13px var(--body); border: 2px solid var(--paper); background: transparent; color: var(--paper); padding: 7px 12px; border-radius: 99px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--yolk); color: var(--ink); border-color: var(--yolk); }
+.busca { flex: 1 1 200px; min-width: 0; }
+.busca input { width: 100%; font: 500 15px var(--body); padding: 10px 14px; border-radius: 99px; border: 0; background: var(--paper); color: var(--ink); }
+.acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { font: 800 14px var(--body); border: 0; border-radius: 14px; padding: 11px 16px; cursor: pointer; background: var(--yolk); color: var(--ink); box-shadow: 0 3px 0 #b88f00; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b88f00; }
+.btn:disabled { opacity: .6; cursor: wait; }
+.btn.red { background: var(--flame); color: var(--paper); box-shadow: 0 3px 0 #8f1600; }
+.btn.ghost { background: var(--paper); color: var(--ink); box-shadow: 0 3px 0 #9fb3d6; }
+.btn.green { background: var(--leaf); color: var(--paper); box-shadow: 0 3px 0 var(--leaf-deep); }
+.btn.small { padding: 7px 12px; font-size: 13px; border-radius: 99px; }
+:focus-visible { outline: 3px solid var(--yolk); outline-offset: 2px; }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; font-weight: 500; }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+/* Grade */
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+.n { aspect-ratio: 1; max-width: 100%; border: 0; border-radius: 12px; cursor: pointer; font: 800 15px var(--body); font-variant-numeric: tabular-nums; background: var(--paper); color: var(--sky); box-shadow: 0 3px 0 rgba(10,30,80,.35); display: flex; align-items: center; justify-content: center; position: relative; transition: transform .12s ease; }
+.n:hover { transform: translateY(-2px); }
+.n.r { background: var(--yolk); color: var(--ink); }
+.n.p { background: var(--leaf); color: var(--paper); }
+.n.v { background: rgba(255,255,255,.22); color: rgba(255,255,255,.75); box-shadow: none; text-decoration: line-through; }
+.n.sel { background: var(--flame); color: var(--yolk); box-shadow: 0 3px 0 #8f1600; text-decoration: none; transform: scale(.94); }
+.barra-sel {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--ink); color: var(--paper);
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  box-shadow: 0 -6px 20px rgba(0,0,0,.25);
+}
+.barra-sel-in { max-width: 980px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+#selInfo { font-weight: 700; font-size: 15px; min-width: 0; }
+.linha-sel { display: flex; gap: 8px; }
+body.selecionando .toast { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
+.n.win { background: var(--flame); color: var(--yolk); outline: 3px solid var(--yolk); text-decoration: none; }
+.vazio { padding: 30px; text-align: center; font-weight: 500; background: rgba(255,255,255,.12); border-radius: 16px; grid-column: 1/-1; }
+.aviso { background: rgba(255,255,255,.14); border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.45; }
+.aviso.erro { background: var(--flame); }
+
+/* Lista */
+details.lista { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 4px 16px; }
+details.lista summary { cursor: pointer; font-family: var(--display); font-size: 20px; padding: 12px 0; color: var(--sky); }
+.tab { overflow-x: auto; padding-bottom: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e4eaf5; white-space: nowrap; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #50607f; }
+td.num { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--sky); }
+.pill { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
+.pill.p { background: #dff3da; color: var(--leaf-deep); }
+.pill.r { background: #fff3bf; color: #7a5a00; }
+
+.crias { margin: 0; border-radius: 22px; overflow: hidden; box-shadow: 0 6px 0 var(--sky-deep); }
+.crias img { display: block; width: 100%; height: auto; }
+
+/* Folhas */
+.veu { position: fixed; inset: 0; background: rgba(8,20,60,.55); z-index: 20; }
+.folha {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--paper); color: var(--ink); border-radius: 26px 26px 0 0;
+  padding: 18px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+  max-width: 560px; margin: 0 auto; max-height: 92vh; overflow-y: auto; animation: sobe .22s ease-out;
+}
+@keyframes sobe { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+.folha header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.bilhete { font-family: var(--display); font-size: 46px; line-height: 1; color: var(--yolk); -webkit-text-stroke: 8px var(--flame); paint-order: stroke fill; }
+.bilhete.t { font-size: 34px; }
+.fechar { border: 0; background: #eef2fa; color: var(--ink); width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; flex: none; }
+form { display: flex; flex-direction: column; gap: 12px; }
+.campo { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #50607f; }
+.campo input { font: 500 16px var(--body); color: var(--ink); padding: 12px 14px; border-radius: 12px; border: 2px solid #d5deee; background: var(--paper); text-transform: none; letter-spacing: 0; }
+.campo input:focus { border-color: var(--sky); outline: none; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg button { font: 800 15px var(--body); padding: 12px; border-radius: 12px; border: 2px solid #d5deee; background: var(--paper); color: var(--ink); cursor: pointer; }
+.seg button[aria-pressed="true"] { border-color: var(--sky); background: var(--sky); color: var(--paper); }
+.seg.pago button[aria-pressed="true"][data-v="sim"] { border-color: var(--leaf); background: var(--leaf); }
+.seg.pago button[aria-pressed="true"][data-v="nao"] { border-color: #c48e00; background: var(--yolk); color: var(--ink); }
+.linha-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.linha-acoes .btn { flex: 1 1 140px; }
+.confirma { background: #fff1ee; border-radius: 12px; padding: 12px; font-size: 14px; display: flex; flex-direction: column; gap: 10px; }
+.meta { font-size: 12px; color: #6a7894; margin: 0; }
+.erro-msg { color: var(--flame); font-weight: 700; font-size: 14px; margin: 0; }
+
+.sorteio { background: var(--flame); border-radius: 22px; padding: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; box-shadow: 0 6px 0 #8f1600; }
+.sorteio .t { font-family: var(--display); font-size: 22px; color: var(--yolk); }
+.sorteio .res { font-family: var(--display); font-size: 40px; color: var(--yolk); line-height: 1; }
+.sorteio .quem { font-weight: 700; }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 11px 18px; border-radius: 99px; font-weight: 700; z-index: 30; font-size: 14px; max-width: calc(100% - 32px); text-align: center; }
+
+@media (max-width: 620px) {
+  .placar { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .hero { grid-template-columns: 1fr; }
+  .donos { transform: rotate(-8deg); text-align: left; margin: 0 0 0 8px; }
+  .l1, .l2 { -webkit-text-stroke-width: 9px; }
+  .grade { grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 5px; }
+  .n { font-size: 14px; border-radius: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topo">
+    <span id="quem" hidden></span>
+    <button class="btn ghost small" id="btnLogin">Entrar (admin)</button>
+    <button class="btn ghost small" id="btnSair" hidden>Sair</button>
+  </div>
+
+  <section class="hero">
+    <div class="hero-title">
+      <p class="kicker">RIFA</p>
+      <h1><span class="l1">FORMATURA</span><span class="l2">DOS CRIA</span></h1>
+    </div>
+    <div class="donos">PAUMAN<br>PITECO</div>
+  </section>
+
+  <section class="premio" aria-label="Prêmio">
+    <span class="lbl">PRÊMIO:</span>
+    <div><span class="grana">R$ 500</span><small>NO PIX</small></div>
+    <span class="ou">ou</span>
+    <div class="leitao"><img src="leitao.png" alt="Leitão"><span>1 LEITÃO<br>GORDO</span></div>
+    <span class="preco">R$5</span>
+  </section>
+
+  <section class="placar publico" id="placarPub" aria-label="Números vendidos">
+    <div class="stat"><span class="k">Vendidos</span><span class="v azul" id="pVend">0</span></div>
+    <div class="stat"><span class="k">Ainda livres</span><span class="v verde" id="pLivres">500</span></div>
+    <div class="barra" aria-hidden="true"><i class="r" id="pBarra" style="width:0"></i></div>
+  </section>
+
+  <section class="placar" id="placarAdm" aria-label="Resumo das vendas" hidden>
+    <div class="stat"><span class="k">Vendidos</span><span class="v azul" id="sVend">0</span></div>
+    <div class="stat"><span class="k">Pagos</span><span class="v verde" id="sPagos">0</span></div>
+    <div class="stat"><span class="k">Falta receber</span><span class="v amarelo" id="sFalta">R$ 0</span></div>
+    <div class="stat"><span class="k">No caixa</span><span class="v verde" id="sCaixa">R$ 0</span></div>
+    <div class="barra" aria-hidden="true"><i class="p" id="bP" style="width:0"></i><i class="r" id="bR" style="width:0"></i></div>
+    <div class="vendedores" id="porVendedor"></div>
+  </section>
+
+  <div class="aviso" id="aviso" hidden></div>
+  <section class="sorteio" id="sorteioBox" hidden></section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div class="toolbar">
+      <div class="chips" role="group" aria-label="Filtrar números">
+        <button class="chip" data-f="todos" aria-pressed="true">Todos</button>
+        <button class="chip" data-f="livres" aria-pressed="false">Livres</button>
+        <button class="chip" data-f="vendidos" aria-pressed="false">Vendidos</button>
+        <button class="chip adm" data-f="pendentes" aria-pressed="false" hidden>Falta pagar</button>
+      </div>
+      <div class="busca"><input id="busca" type="search" placeholder="Buscar número" autocomplete="off"></div>
+    </div>
+    <div class="toolbar" style="justify-content:space-between">
+      <div class="legenda" id="legPub">
+        <span><i style="background:var(--paper)"></i>Livre</span>
+        <span><i style="background:rgba(255,255,255,.3)"></i>Vendido</span>
+      </div>
+      <div class="legenda" id="legAdm" hidden>
+        <span><i style="background:var(--paper)"></i>Livre</span>
+        <span><i style="background:var(--yolk)"></i>Falta pagar</span>
+        <span><i style="background:var(--leaf)"></i>Pago</span>
+      </div>
+      <div class="acoes">
+        <button class="btn" id="btnVarios" hidden>Marcar vários</button>
+        <button class="btn ghost" id="copiarLivres">Copiar números livres</button>
+        <button class="btn red" id="btnSortear" hidden>Sortear</button>
+      </div>
+    </div>
+    <div class="grade" id="grade" aria-label="Números da rifa"></div>
+  </section>
+
+  <details class="lista" id="lista" hidden>
+    <summary>Quem comprou</summary>
+    <div class="tab"><table><thead><tr><th>Nº</th><th>Nome</th><th>Telefone</th><th>Vendedor</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+  </details>
+
+  <figure class="crias"><img src="crias.jpg" alt="Pauman e Piteco"></figure>
+</div>
+
+<div class="barra-sel" id="barraSel" hidden>
+  <div class="barra-sel-in">
+    <span id="selInfo">Toque nos números</span>
+    <div class="linha-sel">
+      <button class="btn ghost small" id="selCancelar">Cancelar</button>
+      <button class="btn green" id="selRegistrar" disabled>Registrar venda</button>
+    </div>
+  </div>
+</div>
+
+<div class="veu" id="veu" hidden></div>
+
+<!-- Folha de venda -->
+<div class="folha" id="folha" role="dialog" aria-modal="true" aria-labelledby="fNum" hidden>
+  <header><span class="bilhete" id="fNum">000</span><button class="fechar" data-fechar aria-label="Fechar">✕</button></header>
+  <form id="form">
+    <label class="campo" id="fNumsWrap" hidden>Números (ex: 10, 15, 20-29)<input id="fNums" inputmode="numeric" autocomplete="off"></label>
+    <label class="campo">Nome do comprador<input id="fNome" required maxlength="80" autocomplete="off"></label>
+    <label class="campo">WhatsApp / telefone<input id="fTel" inputmode="tel" maxlength="30" autocomplete="off"></label>
+    <div class="campo">Quem vendeu
+      <div class="seg" id="fVend"><button type="button" data-v="Pauman">Pauman</button><button type="button" data-v="Piteco">Piteco</button></div>
+    </div>
+    <div class="campo">Pagamento
+      <div class="seg pago" id="fPago"><button type="button" data-v="nao">Falta pagar</button><button type="button" data-v="sim">Pago ✓</button></div>
+    </div>
+    <p class="erro-msg" id="fErro" hidden></p>
+    <div class="linha-acoes">
+      <button class="btn green" type="submit" id="fSalvar">Salvar</button>
+      <button class="btn ghost" type="button" id="fLiberar" hidden>Liberar número</button>
+    </div>
+    <div class="confirma" id="fConfirma" hidden>
+      <span>Liberar este número? O nome do comprador será apagado.</span>
+      <div class="linha-acoes"><button class="btn red" type="button" id="fSim">Sim, liberar</button><button class="btn ghost" type="button" id="fNao">Cancelar</button></div>
+    </div>
+    <p class="meta" id="fMeta"></p>
+  </form>
+</div>
+
+<!-- Folha de login -->
+<div class="folha" id="folhaLogin" role="dialog" aria-modal="true" aria-labelledby="lTit" hidden>
+  <header><span class="bilhete t" id="lTit">ADMIN</span><button class="fechar" data-fechar aria-label="Fechar">✕</button></header>
+  <form id="formLogin">
+    <label class="campo">E-mail<input id="lEmail" type="email" required autocomplete="username"></label>
+    <label class="campo">Senha<input id="lSenha" type="password" required autocomplete="current-password"></label>
+    <p class="erro-msg" id="lErro" hidden></p>
+    <div class="linha-acoes"><button class="btn green" type="submit" id="lEntrar">Entrar</button></div>
+  </form>
+</div>
+
+<!-- Confirmação de sorteio -->
+<div class="folha" id="folhaSorteio" role="dialog" aria-modal="true" aria-labelledby="sTit" hidden>
+  <header><span class="bilhete t" id="sTit">SORTEAR</span><button class="fechar" data-fechar aria-label="Fechar">✕</button></header>
+  <p id="sTexto" style="margin:0 0 14px;line-height:1.45"></p>
+  <div class="linha-acoes"><button class="btn red" id="sConfirmar">Sortear agora</button><button class="btn ghost" data-fechar>Cancelar</button></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO — cole aqui os dados do seu projeto Supabase
+   (Supabase → Project Settings → API)
+   ============================================================ */
+const SUPABASE_URL = "https://trcepyjmlxqlqcuohnbl.supabase.co";      // ex: https://abcdefgh.supabase.co
+const SUPABASE_KEY = "sb_publishable_WC_Ym950wjJeCWfbyi9LIg_ir3vkeD7";  // a chave "anon public" (ou "publishable")
+/* ============================================================ */
+
+(() => {
+  const TOTAL = 500, PRECO = 5, ATUALIZA_MS = 15000;
+  const $ = (id) => document.getElementById(id);
+  const pad = (n) => String(n).padStart(3, "0");
+  const brl = (v) => "R$ " + v.toLocaleString("pt-BR");
+
+  const vendidosPub = new Set();   // visão pública: só números
+  const vendas = new Map();        // visão admin: dados completos
+  let sorteio = null, admin = null, sb = null;
+  let filtro = "todos", termo = "", carregado = false;
+  let atual = null, fVendedor = "Pauman", fPago = false;
+
+  const configurado = !SUPABASE_URL.startsWith("COLE_") && !SUPABASE_KEY.startsWith("COLE_");
+
+  // ---------- Grade ----------
+  const grade = $("grade"), botoes = [];
+  for (let i = 1; i <= TOTAL; i++) {
+    const b = document.createElement("button");
+    b.className = "n"; b.type = "button"; b.textContent = pad(i);
+    b.addEventListener("click", () => tocar(i));
+    botoes.push(b); grade.appendChild(b);
+  }
+  const vazio = document.createElement("div");
+  vazio.className = "vazio"; vazio.textContent = "Nenhum número encontrado.";
+
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 2600);
+  }
+  function aviso(msg, erro) { const a = $("aviso"); a.hidden = !msg; a.textContent = msg || ""; a.classList.toggle("erro", !!erro); }
+  const vendido = (i) => admin ? vendas.has(i) : vendidosPub.has(i);
+
+  function render() {
+    const q = termo.trim().toLowerCase();
+    let visiveis = 0, pagos = 0, reserv = 0; const porV = {};
+    for (let i = 1; i <= TOTAL; i++) {
+      const b = botoes[i - 1], v = admin ? vendas.get(i) : null, sold = vendido(i);
+      b.classList.toggle("p", !!(v && v.pago));
+      b.classList.toggle("r", !!(v && !v.pago));
+      b.classList.toggle("v", !admin && sold);
+      b.classList.toggle("win", !!(sorteio && sorteio.numero === i));
+      b.setAttribute("aria-label", pad(i) + (sold ? (v ? (v.pago ? " pago, " : " falta pagar, ") + v.nome : " vendido") : " livre"));
+      b.title = v ? v.nome + (v.pago ? " · pago" : " · falta pagar") : (sold ? "Vendido" : "Livre");
+      if (v) { v.pago ? pagos++ : reserv++; const k = v.vendedor || "—"; porV[k] = porV[k] || { q: 0, p: 0 }; porV[k].q++; if (v.pago) porV[k].p++; }
+      let show = true;
+      if (filtro === "livres") show = !sold; else if (filtro === "vendidos") show = sold; else if (filtro === "pendentes") show = !!(v && !v.pago);
+      if (show && q) show = pad(i).includes(q) || String(i) === q || !!(v && ((v.nome || "").toLowerCase().includes(q) || (v.telefone || "").includes(q)));
+      b.hidden = !show; if (show) visiveis++;
+    }
+    if (visiveis === 0) grade.appendChild(vazio); else vazio.remove();
+
+    const totalVend = admin ? vendas.size : vendidosPub.size;
+    $("pVend").textContent = totalVend + "/500";
+    $("pLivres").textContent = TOTAL - totalVend;
+    $("pBarra").style.width = (totalVend / TOTAL * 100) + "%";
+
+    if (admin) {
+      $("sVend").textContent = totalVend + "/500";
+      $("sPagos").textContent = pagos;
+      $("sFalta").textContent = brl(reserv * PRECO);
+      $("sCaixa").textContent = brl(pagos * PRECO);
+      $("bP").style.width = (pagos / TOTAL * 100) + "%";
+      $("bR").style.width = (reserv / TOTAL * 100) + "%";
+      const pv = $("porVendedor"); pv.textContent = "";
+      ["Pauman", "Piteco"].forEach((nome) => {
+        const d = porV[nome] || { q: 0, p: 0 }, s = document.createElement("span");
+        s.innerHTML = "<strong></strong> vendeu <b></b> · <b></b> no caixa";
+        s.children[0].textContent = nome; s.children[1].textContent = d.q; s.children[2].textContent = brl(d.p * PRECO);
+        pv.appendChild(s);
+      });
+      const r = document.createElement("span"); r.innerHTML = "<b></b> livres"; r.children[0].textContent = TOTAL - totalVend; pv.appendChild(r);
+
+      const tb = $("tbody"); tb.textContent = "";
+      const linhas = [...vendas.entries()].sort((a, b) => a[0] - b[0]);
+      if (!linhas.length) {
+        const tr = document.createElement("tr"), td = document.createElement("td");
+        td.colSpan = 5; td.textContent = carregado ? "Nenhum número vendido ainda. Toque num número para registrar a primeira venda." : "Carregando…";
+        tr.appendChild(td); tb.appendChild(tr);
+      }
+      for (const [n, v] of linhas) {
+        const tr = document.createElement("tr");
+        const c = (t, cls) => { const td = document.createElement("td"); td.textContent = t; if (cls) td.className = cls; tr.appendChild(td); return td; };
+        c(pad(n), "num"); c(v.nome || ""); c(v.telefone || "—"); c(v.vendedor || "—");
+        const p = document.createElement("span"); p.className = "pill " + (v.pago ? "p" : "r"); p.textContent = v.pago ? "Pago" : "Falta pagar"; c("").appendChild(p);
+        tr.style.cursor = "pointer"; tr.addEventListener("click", () => tocar(n));
+        tb.appendChild(tr);
+      }
+    }
+    renderSorteio();
+  }
+
+  function renderSorteio() {
+    const box = $("sorteioBox");
+    if (!sorteio) { box.hidden = true; return; }
+    box.hidden = false; box.textContent = "";
+    const t = document.createElement("span"); t.className = "t"; t.textContent = "Número sorteado";
+    const r = document.createElement("span"); r.className = "res"; r.textContent = pad(sorteio.numero);
+    const q = document.createElement("span"); q.className = "quem";
+    q.textContent = (sorteio.nome ? sorteio.nome + " · " : "") + new Date(sorteio.quando).toLocaleString("pt-BR");
+    box.append(t, r, q);
+    if (admin) {
+      const x = document.createElement("button"); x.className = "btn ghost"; x.textContent = "Apagar resultado";
+      x.addEventListener("click", async () => {
+        const { error } = await sb.from("sorteio").delete().eq("id", 1);
+        if (error) toast("Não deu para apagar"); else { sorteio = null; render(); toast("Resultado apagado"); }
+      });
+      box.appendChild(x);
+    }
+  }
+
+  function modoAdmin() {
+    const on = !!admin;
+    $("placarPub").hidden = on; $("placarAdm").hidden = !on;
+    $("legPub").hidden = on; $("legAdm").hidden = !on;
+    $("lista").hidden = !on; $("btnSortear").hidden = !on; $("btnVarios").hidden = !on;
+    if (!on && typeof sairSelecao === "function" && selecionando) sairSelecao();
+    document.querySelectorAll(".chip.adm").forEach((c) => (c.hidden = !on));
+    $("btnLogin").hidden = on; $("btnSair").hidden = !on;
+    $("quem").hidden = !on; $("quem").textContent = on ? "Admin: " + (admin.email || "") : "";
+    $("busca").placeholder = on ? "Buscar número, nome ou telefone" : "Buscar número";
+    if (!on && filtro === "pendentes") { filtro = "todos"; document.querySelectorAll(".chip").forEach((o) => o.setAttribute("aria-pressed", String(o.dataset.f === "todos"))); }
+  }
+
+  // ---------- Dados ----------
+  async function carregar() {
+    if (!sb) return;
+    try {
+      if (admin) {
+        const { data, error } = await sb.from("numeros").select("*").order("numero");
+        if (error) throw error;
+        vendas.clear(); data.forEach((v) => vendas.set(v.numero, v));
+      } else {
+        const { data, error } = await sb.from("numeros_publicos").select("numero");
+        if (error) throw error;
+        vendidosPub.clear(); data.forEach((v) => vendidosPub.add(v.numero));
+      }
+      const s = await sb.from("sorteio").select("*").eq("id", 1).maybeSingle();
+      sorteio = s.data || null;
+      carregado = true;
+      if ($("aviso").classList.contains("erro")) aviso("");
+      render();
+    } catch (e) {
+      console.error(e);
+      aviso("Não consegui carregar os números. Confere a internet ou a configuração do Supabase.", true);
+    }
+  }
+
+  // ---------- Interações ----------
+  document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
+    filtro = c.dataset.f;
+    document.querySelectorAll(".chip").forEach((o) => o.setAttribute("aria-pressed", String(o === c)));
+    render();
+  }));
+  $("busca").addEventListener("input", (e) => { termo = e.target.value; render(); });
+
+  $("copiarLivres").addEventListener("click", async () => {
+    const livres = []; for (let i = 1; i <= TOTAL; i++) if (!vendido(i)) livres.push(pad(i));
+    const texto = "🐷 RIFA FORMATURA DOS CRIA — R$5\nPrêmio: R$500 no Pix ou 1 leitão gordo\n" + location.href.split("#")[0] + "\n\nNúmeros livres (" + livres.length + "):\n" + livres.join(" ");
+    try { await navigator.clipboard.writeText(texto); toast("Copiado! Cola no WhatsApp"); }
+    catch (e) {
+      const ta = document.createElement("textarea"); ta.value = texto; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); toast("Copiado! Cola no WhatsApp"); } catch (_) { toast("Não deu para copiar"); }
+      ta.remove();
+    }
+  });
+
+  function abrirFolha(id) { $("veu").hidden = false; $(id).hidden = false; }
+  function fecharTudo() { ["veu", "folha", "folhaLogin", "folhaSorteio"].forEach((id) => ($(id).hidden = true)); atual = null; }
+  document.querySelectorAll("[data-fechar]").forEach((b) => b.addEventListener("click", fecharTudo));
+  $("veu").addEventListener("click", fecharTudo);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharTudo(); });
+
+  function setSeg(id, val) { document.querySelectorAll("#" + id + " button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === val))); }
+  document.querySelectorAll("#fVend button").forEach((b) => b.addEventListener("click", () => { fVendedor = b.dataset.v; setSeg("fVend", fVendedor); }));
+  document.querySelectorAll("#fPago button").forEach((b) => b.addEventListener("click", () => { fPago = b.dataset.v === "sim"; setSeg("fPago", fPago ? "sim" : "nao"); }));
+
+  // ---------- Seleção de vários ----------
+  let selecionando = false, multi = null; // multi = lista de números quando o formulário é de vários
+  const sel = new Set();
+  function atualizarSel() {
+    botoes.forEach((b, i) => b.classList.toggle("sel", sel.has(i + 1)));
+    const n = sel.size;
+    $("selInfo").textContent = n ? n + (n === 1 ? " número" : " números") + " · " + brl(n * PRECO) : "Toque nos números para selecionar";
+    $("selRegistrar").disabled = !n;
+  }
+  function entrarSelecao() {
+    selecionando = true; sel.clear(); atualizarSel();
+    $("barraSel").hidden = false; document.body.classList.add("selecionando");
+    $("btnVarios").textContent = "Selecionando…";
+    toast("Toque nos números que a pessoa comprou");
+  }
+  function sairSelecao() {
+    selecionando = false; sel.clear(); atualizarSel();
+    $("barraSel").hidden = true; document.body.classList.remove("selecionando");
+    $("btnVarios").textContent = "Marcar vários";
+  }
+  $("btnVarios").addEventListener("click", () => { selecionando ? sairSelecao() : entrarSelecao(); });
+  $("selCancelar").addEventListener("click", sairSelecao);
+  $("selRegistrar").addEventListener("click", () => { if (sel.size) abrirVenda([...sel].sort((a, b) => a - b)); });
+
+  // "10, 15, 20-29" -> [10,15,20..29]
+  function lerNumeros(txt) {
+    const nums = new Set(), ruins = [];
+    String(txt).split(/[\s,;]+/).filter(Boolean).forEach((p) => {
+      const m = p.match(/^(\d{1,3})(?:-(\d{1,3}))?$/);
+      if (!m) { ruins.push(p); return; }
+      let a = +m[1], b = m[2] ? +m[2] : a;
+      if (a > b) [a, b] = [b, a];
+      if (a < 1 || b > TOTAL) { ruins.push(p); return; }
+      for (let i = a; i <= b; i++) nums.add(i);
+    });
+    return { nums: [...nums].sort((a, b) => a - b), ruins };
+  }
+  function resumoMulti() {
+    const { nums, ruins } = lerNumeros($("fNums").value);
+    const jaVend = nums.filter((n) => vendas.has(n));
+    $("fNum").textContent = nums.length + (nums.length === 1 ? " NÚMERO" : " NÚMEROS");
+    let t = nums.length + " números · total " + brl(nums.length * PRECO) + ".";
+    if (jaVend.length) t += " Atenção: " + jaVend.map(pad).join(", ") + (jaVend.length === 1 ? " já está vendido e vai" : " já estão vendidos e vão") + " passar para este comprador.";
+    if (ruins.length) t += " Não entendi: " + ruins.join(", ") + ".";
+    $("fMeta").textContent = t;
+    $("fLiberar").hidden = !jaVend.length;
+    $("fLiberar").textContent = "Liberar números vendidos";
+    return { nums, ruins };
+  }
+  $("fNums").addEventListener("input", resumoMulti);
+
+  function abrirVenda(lista) {
+    multi = lista; atual = null;
+    $("fNum").classList.add("t");
+    $("fNumsWrap").hidden = false;
+    $("fNums").value = lista.map(pad).join(", ");
+    // se todos já são do mesmo comprador, preenche com os dados dele (útil para marcar como pago)
+    const dados = lista.map((n) => vendas.get(n)).filter(Boolean);
+    const mesmo = dados.length === lista.length && dados.every((d) => d.nome === dados[0].nome) ? dados[0] : null;
+    $("fNome").value = mesmo ? mesmo.nome : "";
+    $("fTel").value = mesmo ? mesmo.telefone || "" : "";
+    if (mesmo && mesmo.vendedor) fVendedor = mesmo.vendedor;
+    setSeg("fVend", fVendedor);
+    fPago = mesmo ? !!mesmo.pago : false; setSeg("fPago", fPago ? "sim" : "nao");
+    $("fConfirma").hidden = true; $("fErro").hidden = true;
+    $("fSalvar").textContent = "Salvar todos";
+    resumoMulti();
+    abrirFolha("folha");
+    setTimeout(() => $("fNome").focus(), 50);
+  }
+
+  function tocar(n) {
+    if (!admin) {
+      toast(vendido(n) ? pad(n) + " já foi vendido" : pad(n) + " está livre! Chama o Pauman ou o Piteco");
+      return;
+    }
+    if (selecionando) { sel.has(n) ? sel.delete(n) : sel.add(n); atualizarSel(); return; }
+    multi = null;
+    $("fNum").classList.remove("t"); $("fNumsWrap").hidden = true;
+    $("fSalvar").textContent = "Salvar"; $("fLiberar").textContent = "Liberar número";
+    const v = vendas.get(n); atual = n;
+    $("fNum").textContent = pad(n);
+    $("fNome").value = v ? v.nome || "" : "";
+    $("fTel").value = v ? v.telefone || "" : "";
+    fVendedor = (v && v.vendedor) || fVendedor; setSeg("fVend", fVendedor);
+    fPago = v ? !!v.pago : false; setSeg("fPago", fPago ? "sim" : "nao");
+    $("fLiberar").hidden = !v; $("fConfirma").hidden = true; $("fErro").hidden = true;
+    $("fMeta").textContent = v ? "Última alteração: " + new Date(v.atualizado).toLocaleString("pt-BR") : "Número livre.";
+    abrirFolha("folha");
+    setTimeout(() => $("fNome").focus(), 50);
+  }
+
+  function erroForm(t) { $("fErro").textContent = t; $("fErro").hidden = false; }
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nome = $("fNome").value.trim();
+    if (!nome) return erroForm("Coloca o nome de quem comprou.");
+    let nums;
+    if (multi) {
+      const r = resumoMulti();
+      if (r.ruins.length) return erroForm("Confere os números: não entendi " + r.ruins.join(", ") + ".");
+      if (!r.nums.length) return erroForm("Coloca pelo menos um número.");
+      nums = r.nums;
+    } else if (atual) nums = [atual]; else return;
+    const btn = $("fSalvar"); btn.disabled = true;
+    const agora = new Date().toISOString(), tel = $("fTel").value.trim();
+    const linhas = nums.map((n) => ({ numero: n, nome, telefone: tel, vendedor: fVendedor, pago: fPago, atualizado: agora }));
+    const { error } = await sb.from("numeros").upsert(linhas);
+    btn.disabled = false;
+    if (error) return erroForm("Não salvou: " + error.message);
+    linhas.forEach((l) => vendas.set(l.numero, l));
+    const eraMulti = !!multi;
+    fecharTudo(); if (eraMulti) sairSelecao(); render();
+    toast(nums.length === 1 ? pad(nums[0]) + " salvo" + (fPago ? " · pago" : "") : nums.length + " números salvos para " + nome + (fPago ? " · pagos" : ""));
+  });
+  $("fLiberar").addEventListener("click", () => {
+    $("fConfirma").querySelector("span").textContent = multi
+      ? "Liberar os números já vendidos desta lista? Os nomes dos compradores serão apagados."
+      : "Liberar este número? O nome do comprador será apagado.";
+    $("fConfirma").hidden = false;
+  });
+  $("fNao").addEventListener("click", () => { $("fConfirma").hidden = true; });
+  $("fSim").addEventListener("click", async () => {
+    const nums = multi ? lerNumeros($("fNums").value).nums.filter((n) => vendas.has(n)) : (atual ? [atual] : []);
+    if (!nums.length) return;
+    const { error } = await sb.from("numeros").delete().in("numero", nums);
+    if (error) return erroForm("Não deu para liberar: " + error.message);
+    nums.forEach((n) => vendas.delete(n));
+    const eraMulti = !!multi;
+    fecharTudo(); if (eraMulti) sairSelecao(); render();
+    toast(nums.length === 1 ? pad(nums[0]) + " liberado" : nums.length + " números liberados");
+  });
+
+  // Sorteio
+  $("btnSortear").addEventListener("click", () => {
+    const pagos = [...vendas.values()].filter((v) => v.pago).length;
+    $("sTexto").textContent = pagos
+      ? "O sorteio escolhe ao acaso um entre os " + pagos + " números pagos. O resultado aparece para todo mundo no site."
+      : "Ainda não tem nenhum número pago para sortear.";
+    $("sConfirmar").hidden = !pagos;
+    abrirFolha("folhaSorteio");
+  });
+  $("sConfirmar").addEventListener("click", async () => {
+    const pagos = [...vendas.values()].filter((v) => v.pago);
+    if (!pagos.length) return;
+    const arr = new Uint32Array(1); crypto.getRandomValues(arr);
+    const v = pagos[arr[0] % pagos.length];
+    const res = { id: 1, numero: v.numero, nome: v.nome, quando: new Date().toISOString() };
+    const { error } = await sb.from("sorteio").upsert(res);
+    if (error) { toast("Não deu para salvar o sorteio"); return; }
+    sorteio = res; fecharTudo(); render(); toast("Sorteado: " + pad(v.numero) + " · " + v.nome);
+  });
+
+  // Login
+  $("btnLogin").addEventListener("click", () => { $("lErro").hidden = true; abrirFolha("folhaLogin"); setTimeout(() => $("lEmail").focus(), 50); });
+  $("formLogin").addEventListener("submit", async (e) => {
+    e.preventDefault(); if (!sb) return;
+    const btn = $("lEntrar"); btn.disabled = true;
+    const { error } = await sb.auth.signInWithPassword({ email: $("lEmail").value.trim(), password: $("lSenha").value });
+    btn.disabled = false;
+    if (error) {
+      const m = (error.message || "").toLowerCase();
+      let txt;
+      if (m.includes("invalid login") || error.code === "invalid_credentials") txt = "E-mail ou senha incorretos. Confira se é o mesmo usuário criado em Authentication > Users.";
+      else if (m.includes("not confirmed") || error.code === "email_not_confirmed") txt = "Esse e-mail ainda não foi confirmado. No Supabase, abra o usuário e confirme, ou crie de novo marcando Auto Confirm User.";
+      else txt = "Erro do Supabase: " + (error.message || "desconhecido") + (error.status ? " (" + error.status + ")" : "");
+      $("lErro").textContent = txt; $("lErro").hidden = false; return;
+    }
+    $("lSenha").value = ""; fecharTudo(); toast("Bem-vindo, admin!");
+  });
+  $("btnSair").addEventListener("click", async () => { await sb.auth.signOut(); toast("Você saiu"); });
+
+  // ---------- Início ----------
+  render();
+  if (!configurado) { aviso("Site ainda não configurado: cole a Project URL e a chave anon do Supabase no começo do arquivo index.html.", true); return; }
+  if (!window.supabase) { aviso("Não consegui carregar o Supabase. Confere a internet e recarrega a página.", true); return; }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  sb.auth.onAuthStateChange((_evt, session) => {
+    const novo = session ? session.user : null;
+    if ((novo && novo.id) === (admin && admin.id)) return;
+    admin = novo; vendas.clear(); modoAdmin(); render(); carregar();
+  });
+  sb.auth.getSession().then(({ data }) => { admin = data.session ? data.session.user : null; modoAdmin(); carregar(); });
+
+  setInterval(() => { if (!document.hidden && $("folha").hidden) carregar(); }, ATUALIZA_MS);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) carregar(); });
+})();
+</script>
+</body>
+</html>
