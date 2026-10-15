@@ -33,6 +33,7 @@ Aplicação web para gerenciar a rifa de formatura: controle de 500 números, re
 .
 ├── public/                  # Arquivos publicados
 │   ├── index.html
+│   ├── _headers             # Cabeçalhos HTTP de segurança
 │   └── assets/
 │       ├── css/styles.css
 │       ├── js/config.js     # URL e chave pública do Supabase, parâmetros da rifa
@@ -40,6 +41,10 @@ Aplicação web para gerenciar a rifa de formatura: controle de 500 números, re
 │       └── img/
 ├── supabase/
 │   └── schema.sql           # Tabelas, view pública e políticas de acesso
+├── scripts/
+│   └── security-check.sh    # Diagnóstico de segurança
+├── .github/workflows/
+│   └── security.yml         # Execução automática do diagnóstico
 └── wrangler.jsonc           # Configuração de deploy do Cloudflare
 ```
 
@@ -76,3 +81,22 @@ O repositório está conectado ao Cloudflare Workers. Cada commit na branch `mai
   - somente usuários autenticados leem e alteram a tabela `numeros` e registram o sorteio.
 - O cadastro público de usuários deve permanecer desativado, para que apenas os administradores criados manualmente tenham acesso.
 - Os dados pessoais dos compradores (nome e telefone) devem ser excluídos ao final da rifa.
+
+### Diagnóstico automático
+
+O workflow [`security.yml`](.github/workflows/security.yml) executa [`scripts/security-check.sh`](scripts/security-check.sh) a cada commit na `main`, toda segunda-feira e sob demanda (**Actions → Diagnóstico de segurança → Run workflow**). O resultado aparece no resumo da execução, e uma falha crítica marca o workflow como falho, o que gera notificação por e-mail.
+
+| Área | Verificações |
+| --- | --- |
+| Código | Chaves secretas versionadas, tipo da chave do Supabase, versão fixa e integridade (SRI) de scripts externos, JavaScript embutido no HTML, uso de `innerHTML`, cabeçalhos de segurança e RLS no esquema |
+| Site publicado | Disponibilidade e versão publicada, redirecionamento para HTTPS, cabeçalhos de segurança aplicados e exposição de arquivos internos |
+| Supabase | Cadastro público desativado, provedores de login ativos, leitura anônima da tabela `numeros`, campos da view pública e bloqueio de escrita anônima em `numeros` e `sorteio` |
+
+As verificações do Supabase usam apenas a chave pública, como um visitante anônimo. Os testes de escrita enviam registros propositalmente inválidos, de modo que nada é gravado mesmo que a proteção falhe.
+
+Para executar localmente:
+
+```bash
+bash scripts/security-check.sh               # completo
+bash scripts/security-check.sh --static-only # apenas o código
+```

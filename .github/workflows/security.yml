@@ -1,0 +1,32 @@
+name: Diagnóstico de segurança
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Toda segunda-feira às 09:00 (horário de Brasília). Também detecta mudanças
+    # feitas direto no painel do Supabase e mantém o projeto ativo no plano gratuito.
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnostico:
+    name: Diagnóstico
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Executar verificações
+        env:
+          SITE_URL: https://rifa.formatura26.workers.dev
+          # No push, aguarda o Cloudflare publicar a nova versão antes de testar o site
+          DEPLOY_WAIT_S: ${{ github.event_name == 'push' && '300' || '0' }}
+        run: bash scripts/security-check.sh
