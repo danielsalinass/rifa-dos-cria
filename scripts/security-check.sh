@@ -124,11 +124,24 @@ else row fail "Row Level Security ausente no esquema" "supabase/schema.sql"; fi
 if [[ $STATIC_ONLY -eq 0 ]]; then
 section "Aplicação publicada"
 
-# 8. Site no ar com a versão deste commit
-LOCAL_SUM=$(openssl dgst -sha256 "$PUBLIC/assets/js/app.js" | awk '{print $NF}')
+# 8. Build do Cloudflare (informado pelo workflow) e site no ar com a versão deste commit
+if [[ -n "${DEPLOY_STATUS:-}" ]]; then
+  case "$DEPLOY_STATUS" in
+    success) row ok "Build do Cloudflare concluído" "Versão deste commit publicada";;
+    failure|cancelled|timed_out|action_required) row fail "Build do Cloudflare falhou" "Status: $DEPLOY_STATUS. O site continua com a versão anterior";;
+    *) row warn "Build do Cloudflare não encontrado" "Status: $DEPLOY_STATUS";;
+  esac
+fi
+site_sum() { # concatena os principais arquivos para comparar versões
+  local base="$1" f
+  for f in index.html assets/js/app.js assets/js/config.js assets/css/styles.css; do
+    if [[ "$base" == http* ]]; then curl -fsSL --max-time 20 "$base/$f?nocache=$(date +%s)" 2>/dev/null; else cat "$base/$f"; fi
+  done | openssl dgst -sha256 | awk '{print $NF}'
+}
+LOCAL_SUM=$(site_sum "$PUBLIC")
 deadline=$(( $(date +%s) + DEPLOY_WAIT_S )); LIVE_SUM=""
 while :; do
-  LIVE_SUM=$(curl -fsSL --max-time 20 "$SITE_URL/assets/js/app.js?nocache=$(date +%s)" 2>/dev/null | openssl dgst -sha256 | awk '{print $NF}')
+  LIVE_SUM=$(site_sum "$SITE_URL")
   [[ "$LIVE_SUM" == "$LOCAL_SUM" ]] && break
   (( $(date +%s) >= deadline )) && break
   sleep 20
@@ -177,7 +190,8 @@ fi
 
 # 13. Dados dos compradores não são lidos por visitantes
 R=$(curl -s --max-time 20 "${AUTH[@]}" "$REST/numeros?select=*&limit=5")
-if [[ "$R" == "[]" ]]; then row ok "Nomes e telefones protegidos" "Visitante recebe a tabela numeros vazia"
+if [[ -z "$R" ]]; then row fail "Proteção dos dados dos compradores" "Supabase não respondeu. Não foi possível verificar"
+elif [[ "$R" == "[]" ]]; then row ok "Nomes e telefones protegidos" "Visitante recebe a tabela numeros vazia"
 elif jq -e 'type=="object" and (.code? // "")!=""' <<< "$R" >/dev/null 2>&1; then row ok "Nomes e telefones protegidos" "Acesso negado ($(jq -r .code <<< "$R"))"
 else row fail "Dados dos compradores expostos" "Visitante consegue ler a tabela numeros"; fi
 
@@ -199,7 +213,8 @@ check_write() { # tabela, corpo, título
   local out code body
   out=$(write_probe "$1" "$2"); code="${out##*$'\n'}"; body="${out%$'\n'*}"
   local pgcode; pgcode=$(jq -r '.code // empty' <<< "$body" 2>/dev/null)
-  if [[ "$pgcode" == "42501" || "$code" == "401" || "$code" == "403" ]]; then row ok "$3" "Bloqueado (HTTP $code${pgcode:+, $pgcode})"
+  if [[ "$code" == "000" ]]; then row fail "$3" "Supabase não respondeu. Não foi possível verificar"
+  elif [[ "$pgcode" == "42501" || "$code" == "401" || "$code" == "403" ]]; then row ok "$3" "Bloqueado (HTTP $code${pgcode:+, $pgcode})"
   elif [[ "$code" =~ ^2 ]]; then row fail "$3" "Visitante GRAVOU na tabela $1. Revise as políticas RLS"
   else row fail "$3" "A proteção não bloqueou; a gravação só falhou por dado inválido (HTTP $code${pgcode:+, $pgcode})"; fi
 }
