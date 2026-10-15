@@ -32,6 +32,10 @@ row() { # status, título, detalhe
   case "$1" in ok) icon="✅"; PASS=$((PASS+1));; warn) icon="⚠️"; WARN=$((WARN+1));; fail) icon="❌"; FAIL=$((FAIL+1));; esac
   local detail="${3//|/\\|}"
   REPORT+="| $icon | $2 | ${detail} |"$'\n'
+  # Anotações do GitHub Actions: aparecem na página da execução
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+    case "$1" in warn) echo "::warning title=$2::$3";; fail) echo "::error title=$2::$3";; esac
+  fi
 }
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Dependência ausente: $1" >&2; exit 2; }; }
