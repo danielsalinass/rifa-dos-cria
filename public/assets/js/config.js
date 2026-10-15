@@ -9,7 +9,7 @@
 window.RIFA_CONFIG = Object.freeze({
   supabaseUrl: "https://trcepyjmlxqlqcuohnbl.supabase.co",
   supabaseKey: "sb_publishable_WC_Ym950wjJeCWfbyi9LIg_ir3vkeD7",
-  totalNumeros: 500,
+  totalNumeros: 800,
   precoNumero: 5,
   intervaloAtualizacaoMs: 15000,
 });

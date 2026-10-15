@@ -59,12 +59,12 @@
     if (visiveis === 0) grade.appendChild(vazio); else vazio.remove();
 
     const totalVend = admin ? vendas.size : vendidosPub.size;
-    $("pVend").textContent = totalVend + "/500";
+    $("pVend").textContent = totalVend + "/" + TOTAL;
     $("pLivres").textContent = TOTAL - totalVend;
     $("pBarra").style.width = (totalVend / TOTAL * 100) + "%";
 
     if (admin) {
-      $("sVend").textContent = totalVend + "/500";
+      $("sVend").textContent = totalVend + "/" + TOTAL;
       $("sPagos").textContent = pagos;
       $("sFalta").textContent = brl(reserv * PRECO);
       $("sCaixa").textContent = brl(pagos * PRECO);

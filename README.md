@@ -1,13 +1,13 @@
 # Rifa Formatura dos Cria
 
-Aplicação web para gerenciar a rifa de formatura: controle de 500 números, registro de vendas e pagamentos e realização do sorteio.
+Aplicação web para gerenciar a rifa de formatura: controle de 800 números, registro de vendas e pagamentos e realização do sorteio.
 
 **Produção:** https://rifa.formatura26.workers.dev
 
 ## Funcionalidades
 
 **Área pública**
-- Grade com os 500 números, indicando quais estão livres e quais foram vendidos
+- Grade com os 800 números, indicando quais estão livres e quais foram vendidos
 - Filtros (todos, livres, vendidos) e busca por número
 - Cópia da lista de números livres, formatada para envio por mensagem
 - Exibição do resultado do sorteio
