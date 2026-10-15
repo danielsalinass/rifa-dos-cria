@@ -1,6 +1,9 @@
 {
-  // Site estático: o Cloudflare publica só o que está em ./public
+  // Configuração do Cloudflare Workers.
+  // Publica o conteúdo de ./public como arquivos estáticos.
   "name": "rifa",
   "compatibility_date": "2025-09-01",
-  "assets": { "directory": "./public" }
+  "assets": {
+    "directory": "./public"
+  }
 }

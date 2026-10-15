@@ -1,0 +1,17 @@
+# Dependências e ferramentas
+node_modules/
+.wrangler/
+
+# Variáveis de ambiente
+.env
+.env.*
+.dev.vars
+
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log

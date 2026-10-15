@@ -1,7 +1,12 @@
--- RIFA FORMATURA DOS CRIA — configuração do banco (Supabase)
--- Cole tudo isto no SQL Editor do Supabase e clique em "Run".
+-- =============================================================
+-- Rifa Formatura dos Cria — esquema do banco de dados (Supabase)
+--
+-- Cria as tabelas, a view pública e as políticas de Row Level
+-- Security. Execute no SQL Editor do projeto. O script é
+-- idempotente: pode ser executado novamente sem perda de dados.
+-- =============================================================
 
--- 1) Números vendidos (só o admin lê os dados completos)
+-- Números vendidos. Leitura e escrita restritas a usuários autenticados.
 create table if not exists public.numeros (
   numero     int primary key check (numero between 1 and 500),
   nome       text not null,
@@ -18,14 +23,13 @@ drop policy if exists "admin grava numeros" on public.numeros;
 create policy "admin le numeros"    on public.numeros for select to authenticated using (true);
 create policy "admin grava numeros" on public.numeros for all    to authenticated using (true) with check (true);
 
--- 2) Visão pública: mostra só QUAIS números já foram vendidos
---    (sem nome nem telefone dos compradores)
+-- View pública: expõe apenas os números vendidos, sem dados dos compradores.
 create or replace view public.numeros_publicos as
   select numero from public.numeros;
 
 grant select on public.numeros_publicos to anon, authenticated;
 
--- 3) Resultado do sorteio (todo mundo vê, só o admin grava)
+-- Resultado do sorteio. Leitura pública; escrita restrita a usuários autenticados.
 create table if not exists public.sorteio (
   id     int primary key default 1 check (id = 1),
   numero int not null,
