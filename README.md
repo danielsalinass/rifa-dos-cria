@@ -39,6 +39,8 @@ Aplicação web para gerenciar a rifa de formatura: controle de 500 números, re
 │       ├── js/config.js     # URL e chave pública do Supabase, parâmetros da rifa
 │       ├── js/app.js        # Lógica da aplicação
 │       └── img/
+├── src/
+│   └── worker.js            # Redireciona HTTP para HTTPS e entrega os arquivos estáticos
 ├── supabase/
 │   └── schema.sql           # Tabelas, view pública e políticas de acesso
 ├── scripts/
@@ -71,7 +73,7 @@ npx serve public
 
 ## Deploy
 
-O repositório está conectado ao Cloudflare Workers. Cada commit na branch `main` publica a pasta `public/` automaticamente, conforme definido em `wrangler.jsonc`.
+O repositório está conectado ao Cloudflare Workers. Cada commit na branch `main` publica o Worker (`src/worker.js`) e a pasta `public/` automaticamente, conforme definido em `wrangler.jsonc`.
 
 ## Segurança
 
@@ -79,6 +81,8 @@ O repositório está conectado ao Cloudflare Workers. Cada commit na branch `mai
 - O acesso aos dados é controlado por Row Level Security:
   - visitantes leem apenas a view `numeros_publicos`, que expõe somente os números vendidos, sem dados dos compradores;
   - somente usuários autenticados leem e alteram a tabela `numeros` e registram o sorteio.
+- O site é servido apenas por HTTPS e envia cabeçalhos de segurança (`public/_headers`): Content-Security-Policy, HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` e `Permissions-Policy`.
+- A biblioteca do Supabase é carregada com versão fixa e verificação de integridade (SRI).
 - O cadastro público de usuários deve permanecer desativado, para que apenas os administradores criados manualmente tenham acesso.
 - Os dados pessoais dos compradores (nome e telefone) devem ser excluídos ao final da rifa.
 

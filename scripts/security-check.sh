@@ -110,7 +110,7 @@ else row warn "innerHTML com conteúdo dinâmico" "Revise: $(head -c 300 <<< "$U
 # 6. Cabeçalhos de segurança configurados
 HDR="$PUBLIC/_headers"
 MISSING=""
-for h in X-Content-Type-Options X-Frame-Options Referrer-Policy Permissions-Policy; do grep -qi "^\s*$h:" "$HDR" 2>/dev/null || MISSING+="$h "; done
+for h in Content-Security-Policy Strict-Transport-Security X-Content-Type-Options X-Frame-Options Referrer-Policy Permissions-Policy; do grep -qi "^\s*$h:" "$HDR" 2>/dev/null || MISSING+="$h "; done
 if [[ -z "$MISSING" ]]; then row ok "Cabeçalhos de segurança configurados" "public/_headers"
 else row warn "Cabeçalhos de segurança ausentes na configuração" "$MISSING"; fi
 
@@ -146,13 +146,13 @@ else row warn "HTTP não redireciona para HTTPS" "Resposta: $HTTP_CODE"; fi
 # 10. Cabeçalhos de segurança na resposta real
 LIVE_HDRS=$(curl -sSI --max-time 20 "$SITE_URL/" | tr -d '\r')
 MISSING=""
-for h in X-Content-Type-Options X-Frame-Options Referrer-Policy; do grep -qi "^$h:" <<< "$LIVE_HDRS" || MISSING+="$h "; done
-if [[ -z "$MISSING" ]]; then row ok "Cabeçalhos de segurança aplicados no site" "nosniff, proteção contra iframe e Referrer-Policy"
+for h in Content-Security-Policy Strict-Transport-Security X-Content-Type-Options X-Frame-Options Referrer-Policy; do grep -qi "^$h:" <<< "$LIVE_HDRS" || MISSING+="$h "; done
+if [[ -z "$MISSING" ]]; then row ok "Cabeçalhos de segurança aplicados no site" "CSP, HSTS, nosniff, proteção contra iframe e Referrer-Policy"
 else row warn "Cabeçalhos de segurança não aplicados no site" "Ausentes: $MISSING"; fi
 
 # 11. Arquivos internos não publicados
 LEAK=""
-for p in /.git/config /supabase/schema.sql /wrangler.jsonc /README.md /scripts/security-check.sh; do
+for p in /.git/config /supabase/schema.sql /wrangler.jsonc /README.md /scripts/security-check.sh /src/worker.js /_headers; do
   c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL$p"); [[ "$c" == "200" ]] && LEAK+="$p "
 done
 # O roteamento de SPA pode responder 200 com o index.html; confere o conteúdo
