@@ -88,7 +88,7 @@ O repositório está conectado ao Cloudflare Workers. Cada commit na branch `mai
 
 ### Diagnóstico automático
 
-O workflow [`security.yml`](.github/workflows/security.yml) executa [`scripts/security-check.sh`](scripts/security-check.sh) a cada commit na `main`, toda segunda-feira e sob demanda (**Actions → Diagnóstico de segurança → Run workflow**). O resultado aparece no resumo da execução, e uma falha crítica marca o workflow como falho, o que gera notificação por e-mail.
+O workflow [`security.yml`](.github/workflows/security.yml) executa [`scripts/security-check.sh`](scripts/security-check.sh) a cada commit na `main`, às segundas, quartas e sextas e sob demanda (**Actions → Diagnóstico de segurança → Run workflow**). O resultado aparece no resumo da execução, e uma falha crítica marca o workflow como falho, o que gera notificação por e-mail.
 
 | Área | Verificações |
 | --- | --- |
@@ -96,7 +96,7 @@ O workflow [`security.yml`](.github/workflows/security.yml) executa [`scripts/se
 | Site publicado | Disponibilidade e versão publicada, redirecionamento para HTTPS, cabeçalhos de segurança aplicados e exposição de arquivos internos |
 | Supabase | Cadastro público desativado, provedores de login ativos, leitura anônima da tabela `numeros`, campos da view pública e bloqueio de escrita anônima em `numeros` e `sorteio` |
 
-As verificações do Supabase usam apenas a chave pública, como um visitante anônimo. Os testes de escrita enviam registros propositalmente inválidos, de modo que nada é gravado mesmo que a proteção falhe.
+A execução periódica também mantém o projeto do Supabase ativo, já que o plano gratuito pausa projetos após 7 dias sem uso. As verificações do Supabase usam apenas a chave pública, como um visitante anônimo. Os testes de escrita enviam registros propositalmente inválidos, de modo que nada é gravado mesmo que a proteção falhe.
 
 Para executar localmente:
 

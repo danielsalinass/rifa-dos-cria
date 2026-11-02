@@ -4,9 +4,10 @@ on:
   push:
     branches: [main]
   schedule:
-    # Toda segunda-feira às 09:00 (horário de Brasília). Também detecta mudanças
-    # feitas direto no painel do Supabase e mantém o projeto ativo no plano gratuito.
-    - cron: "0 12 * * 1"
+    # Segunda, quarta e sexta às 09:00 (horário de Brasília). Detecta mudanças feitas
+    # direto no painel do Supabase e mantém o projeto ativo: no plano gratuito, o
+    # Supabase pausa projetos após 7 dias sem uso.
+    - cron: "0 12 * * 1,3,5"
   workflow_dispatch:
 
 permissions:
