@@ -175,6 +175,12 @@ else row fail "Arquivos internos acessíveis no site" "$LEAK"; fi
 
 # ---------- Supabase, como visitante anônimo ----------
 AUTH=(-H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY")
+# O Supabase está respondendo de verdade? (sem conexão, erro 5xx do proxy ou página HTML = indisponível)
+supabase_ok() { # código HTTP, corpo
+  [[ "$1" == "000" || "$1" =~ ^5 ]] && return 1
+  [[ -z "$2" ]] && return 0
+  jq -e . <<< "$2" >/dev/null 2>&1
+}
 REST="$SB_URL/rest/v1"
 
 # 12. Cadastro público desativado
@@ -189,19 +195,22 @@ else
 fi
 
 # 13. Dados dos compradores não são lidos por visitantes
-R=$(curl -s --max-time 20 "${AUTH[@]}" "$REST/numeros?select=*&limit=5")
-if [[ -z "$R" ]]; then row fail "Proteção dos dados dos compradores" "Supabase não respondeu. Não foi possível verificar"
+OUT=$(curl -s --max-time 20 "${AUTH[@]}" "$REST/numeros?select=*&limit=5" -w $'\n%{http_code}')
+CODE="${OUT##*$'\n'}"; R="${OUT%$'\n'*}"
+if ! supabase_ok "$CODE" "$R"; then row fail "Proteção dos dados dos compradores" "Supabase indisponível (HTTP $CODE). Não foi possível verificar"
 elif [[ "$R" == "[]" ]]; then row ok "Nomes e telefones protegidos" "Visitante recebe a tabela numeros vazia"
-elif jq -e 'type=="object" and (.code? // "")!=""' <<< "$R" >/dev/null 2>&1; then row ok "Nomes e telefones protegidos" "Acesso negado ($(jq -r .code <<< "$R"))"
-else row fail "Dados dos compradores expostos" "Visitante consegue ler a tabela numeros"; fi
+elif jq -e 'type=="array" and length>0' <<< "$R" >/dev/null 2>&1; then row fail "Dados dos compradores expostos" "Visitante consegue ler a tabela numeros"
+else row ok "Nomes e telefones protegidos" "Acesso negado (HTTP $CODE$(jq -r '.code // empty | ", " + .' <<< "$R" 2>/dev/null))"; fi
 
 # 14. View pública expõe só o número
-R=$(curl -s --max-time 20 "${AUTH[@]}" "$REST/numeros_publicos?select=*&limit=5")
-if jq -e 'type=="array"' <<< "$R" >/dev/null 2>&1; then
+OUT=$(curl -s --max-time 20 "${AUTH[@]}" "$REST/numeros_publicos?select=*&limit=5" -w $'\n%{http_code}')
+CODE="${OUT##*$'\n'}"; R="${OUT%$'\n'*}"
+if ! supabase_ok "$CODE" "$R"; then row fail "Lista pública" "Supabase indisponível (HTTP $CODE). Não foi possível verificar"
+elif jq -e 'type=="array"' <<< "$R" >/dev/null 2>&1; then
   EXTRA=$(jq -r '[.[] | keys[]] | unique | map(select(.!="numero")) | join(", ")' <<< "$R")
   if [[ -z "$EXTRA" ]]; then row ok "Lista pública mostra só os números" "$(jq length <<< "$R") registro(s) na amostra"
   else row fail "Lista pública expõe campos extras" "$EXTRA"; fi
-else row fail "Lista pública indisponível" "$(head -c 200 <<< "$R")"; fi
+else row fail "Lista pública indisponível" "HTTP $CODE: $(jq -r '.message // empty' <<< "$R" 2>/dev/null | head -c 200)"; fi
 
 # 15/16. Visitante não consegue gravar. A linha de teste é inválida de propósito
 # (nome nulo / numero nulo): se a proteção falhar, o banco recusa mesmo assim e nada é gravado.
@@ -213,7 +222,7 @@ check_write() { # tabela, corpo, título
   local out code body
   out=$(write_probe "$1" "$2"); code="${out##*$'\n'}"; body="${out%$'\n'*}"
   local pgcode; pgcode=$(jq -r '.code // empty' <<< "$body" 2>/dev/null)
-  if [[ "$code" == "000" ]]; then row fail "$3" "Supabase não respondeu. Não foi possível verificar"
+  if ! supabase_ok "$code" "$body"; then row fail "$3" "Supabase indisponível (HTTP $code). Não foi possível verificar"
   elif [[ "$pgcode" == "42501" || "$code" == "401" || "$code" == "403" ]]; then row ok "$3" "Bloqueado (HTTP $code${pgcode:+, $pgcode})"
   elif [[ "$code" =~ ^2 ]]; then row fail "$3" "Visitante GRAVOU na tabela $1. Revise as políticas RLS"
   else row fail "$3" "A proteção não bloqueou; a gravação só falhou por dado inválido (HTTP $code${pgcode:+, $pgcode})"; fi
