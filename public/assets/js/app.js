@@ -211,7 +211,7 @@
   function lerNumeros(txt) {
     const nums = new Set(), ruins = [];
     String(txt).split(/[\s,;]+/).filter(Boolean).forEach((p) => {
-      const m = p.match(/^(\d{1,3})(?:-(\d{1,3}))?$/);
+      const m = p.match(/^(\d{1,4})(?:-(\d{1,4}))?$/);
       if (!m) { ruins.push(p); return; }
       let a = +m[1], b = m[2] ? +m[2] : a;
       if (a > b) [a, b] = [b, a];

@@ -8,7 +8,7 @@
 
 -- Números vendidos. Leitura e escrita restritas a usuários autenticados.
 create table if not exists public.numeros (
-  numero     int primary key check (numero between 1 and 800),
+  numero     int primary key check (numero between 1 and 1500),
   nome       text not null,
   telefone   text,
   vendedor   text,
@@ -44,7 +44,8 @@ drop policy if exists "admin grava sorteio" on public.sorteio;
 create policy "todos veem sorteio"  on public.sorteio for select to anon, authenticated using (true);
 create policy "admin grava sorteio" on public.sorteio for all    to authenticated using (true) with check (true);
 
--- Ampliação de 500 para 800 números (outubro/2026). Em bancos criados com a
--- versão anterior deste script, amplia o limite sem alterar os registros.
+-- Ampliação do limite de números (500 → 800 em outubro/2026; 800 → 1500 em
+-- novembro/2026). Em bancos criados com versões anteriores deste script,
+-- amplia o limite sem alterar os registros.
 alter table public.numeros drop constraint if exists numeros_numero_check;
-alter table public.numeros add constraint numeros_numero_check check (numero between 1 and 800);
+alter table public.numeros add constraint numeros_numero_check check (numero between 1 and 1500);
